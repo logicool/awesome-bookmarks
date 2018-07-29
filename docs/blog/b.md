@@ -1,3 +1,5 @@
+本文主要讲述的是怎么最合理化的运用游览器缓存，和 webpack 存在了几年的一个问题斗智斗勇的过程。本文部分内容可能会随着 webpack5 的发布变得毫无意义。
+
 ## 合理划分公共模块
 
 以下内容都会以 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin) 为例子
@@ -47,7 +49,7 @@ webpack 4 的 `Code Splitting` 它最大的特点就是配置简单，如果你�
 
 ## webpack records
 
-可能很多人连这个配置项都没有注意过，不过早在 2016 年就已经被设计出来让你更好的利用 cache。[官方文档](https://webpack.js.org/configuration/other-options/#recordspath)
+可能很多人连这个配置项都没有注意过，不过早在 2015 年就已经被设计出来让你更好的利用 cache。[官方文档](https://webpack.js.org/configuration/other-options/#recordspath)
 
 要使用它配置也很简单：
 

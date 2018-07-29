@@ -21,9 +21,44 @@
 
 # 升级篇
 
+首先将 webpack 升级到 4，运行`webpack xxx`是不行的，因为它将命令行相关的东西单独拆了出去封装成了`webpack-cli`。会报
+
+> The CLI moved into a separate package: webpack-cli.
+> Please install `webpack-cli` in addition to webpack itself to use the CLI.
+
+所有你需要安装`npm install webpack-cli -D -S`。你也可将它安装在全局。
+
+同时新版 webpack 需要`Node.js 的最低支持版本为 6.11.5`，不要忘了升级。如果还要维护老项目可以使用 [nvm](https://github.com/creationix/nvm)来做一下 node 版本控制。
+
 ## 默认配置
 
+其实比如这次升级带来的功能`sideEffects`、`Module Type’s Introduced`、`WebAssembly Support`和其它性能方面的提升，对于一帮用户来说是不需要去关注的，一帮也用不到。主要是`optimization.splitChunks`代替原有的`CommonsChunkPlugin`(下篇文章会着重介绍)，和`Better Defaults-mode`更好的默认配置是大家稍微需要关注一下的。
+
+`webpack 4`引入了`零配置`的概念，被[parcel](https://github.com/parcel-bundler/parcel)刺激到了，但我觉得还是有不少可以优化的东西，真正像活动页这种项目我平时还是用`parcel`多一点，最近又新出了[Fastpack](http://fastpack.io/)可以关注一下。
+
 ModuleConcatenationPlugin
+
+development 模式下，将侧重于功能调试和优化开发体验，包含如下内容：
+
+浏览器调试工具;
+
+开发阶段的详细错误日志和提示;
+
+快速和优化的增量构建机制
+
+production 模式下，将侧重于模块体积优化和线上部署，包含如下内容：
+
+开启所有的优化代码;
+
+更小的 bundle 大小;
+
+去除掉只在开发阶段运行的代码;
+
+Scope hoisting 和 Tree-shaking;
+
+自动启用 uglifyjs 对代码进行压缩
+
+webpack 一直以来最饱受诟病的就是其配置门槛极高，配置内容复杂而繁琐，容易让人从入门到放弃，而它的后起之秀如 rollup、parcel 等均在配置流程上做了极大的优化，做到开箱即用，webpack 4 中应该也从中借鉴了不少经验来提升自身的配置效率。
 
 因为`webpack4`改了 `hook` 所以所有的`loaders`、`plugins`都需要升级。
 
@@ -189,10 +224,12 @@ module.exports = file => () => import("@/views/" + file + ".vue");
 
 总之我觉得打包时间控制在差不多的范围内就可以了，没必要过分的优化。你研究了半天，改了一堆参数发现其实也就提升了几秒，但维护成本上去了，得不偿失。还不如升级 node、升级 webpack、升级你的编译环境的硬件水平实在和简单。
 
-比如我司`CI`使用的是腾讯云 一般的机器，这个项目也是一个很大的后台项目两百加页面，没有使用什么`happypack`、`dll`，只是升级用了最新版的`webpack4`，`node:8.11.3`。
+比如我司`CI`使用的是腾讯云普通的的 8 核 16g 的机器，这个项目也是一个很大的后台项目 200+页面，引用了很多第三方的库，但没有使用什么`happypack`、`dll`，只是升级用了最新版的`webpack4`，`node@8.11.3`。
 编译速度稳定在两分多钟，完全不觉得有什么要优化的必要了。
 
 ![](https://user-gold-cdn.xitu.io/2018/7/29/164e5366dd1d9dec?w=896&h=236&f=jpeg&s=22563)
+
+## 提取 runtime
 
 参考文章：
 
