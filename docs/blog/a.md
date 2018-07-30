@@ -19,7 +19,11 @@
 - 上篇-就是普通的在`webpack 3` 的基础上升级，要做哪些操作和遇到了哪些坑。
 - 下篇-是在`webpack 4`下怎么合理的打包，并且最大化利用 `long term caching`
 
+**本文章不是手摸手从零教你 webpack 配置，所以并不会讲太多很基础的配置问题**。比如如何处理 css 文件，如何配置 webpack-dev-server，如何结合 babel 等等，有需求的推荐看[官方文档](https://webpack.js.org/concepts/)或者[survivejs](https://survivejs.com/webpack/developing/webpack-dev-server/)出的一个系列教程--这个可能比文档还要好和全面。
+
 # 升级篇
+
+其实我一直觉得模仿和借鉴是最高效的方法。所以我建议 webpack 的配置还好通过借鉴一些成熟的配置比较好。比如你项目是 react 的话可以借鉴 [create-react-app ](https://github.com/facebook/create-react-app)，下载之后`npm run eject` 就可以看到它详细的 webpackp 配置了。vue 的话由于新版`vue cli`不支持 `eject`了，而且改用 [webpack-chain](https://github.com/mozilla-neutrino/webpack-chain)来配置，所以借鉴起来可能会不太方便，主要配置[地址](https://github.com/vuejs/vue-cli/tree/dev/packages/@vue/cli-service/lib/config)。或者你可以直接借鉴 webpack 官方的各种 [examples](https://github.com/webpack/webpack/tree/master/examples),，再或者你可以直接借鉴 `vue-element-admin` 的[配置](https://github.com/PanJiaChen/vue-element-admin/pull/889)。
 
 首先将 webpack 升级到 4，运行`webpack xxx`是不行的，因为它将命令行相关的东西单独拆了出去封装成了`webpack-cli`。会报
 
@@ -30,35 +34,7 @@
 
 同时新版 webpack 需要`Node.js 的最低支持版本为 6.11.5`，不要忘了升级。如果还要维护老项目可以使用 [nvm](https://github.com/creationix/nvm)来做一下 node 版本控制。
 
-## 默认配置
-
-其实比如这次升级带来的功能`sideEffects`、`Module Type’s Introduced`、`WebAssembly Support`和其它性能方面的提升，对于一帮用户来说是不需要去关注的，一帮也用不到。主要是`optimization.splitChunks`代替原有的`CommonsChunkPlugin`(下篇文章会着重介绍)，和`Better Defaults-mode`更好的默认配置是大家稍微需要关注一下的。
-
-`webpack 4`引入了`零配置`的概念，被[parcel](https://github.com/parcel-bundler/parcel)刺激到了，但我觉得还是有不少可以优化的东西，真正像活动页这种项目我平时还是用`parcel`多一点，最近又新出了[Fastpack](http://fastpack.io/)可以关注一下。
-
-ModuleConcatenationPlugin
-
-development 模式下，将侧重于功能调试和优化开发体验，包含如下内容：
-
-浏览器调试工具;
-
-开发阶段的详细错误日志和提示;
-
-快速和优化的增量构建机制
-
-production 模式下，将侧重于模块体积优化和线上部署，包含如下内容：
-
-开启所有的优化代码;
-
-更小的 bundle 大小;
-
-去除掉只在开发阶段运行的代码;
-
-Scope hoisting 和 Tree-shaking;
-
-自动启用 uglifyjs 对代码进行压缩
-
-webpack 一直以来最饱受诟病的就是其配置门槛极高，配置内容复杂而繁琐，容易让人从入门到放弃，而它的后起之秀如 rollup、parcel 等均在配置流程上做了极大的优化，做到开箱即用，webpack 4 中应该也从中借鉴了不少经验来提升自身的配置效率。
+**升级所有依赖**
 
 因为`webpack4`改了 `hook` 所以所有的`loaders`、`plugins`都需要升级。
 
@@ -68,7 +44,60 @@ webpack 一直以来最饱受诟病的就是其配置门槛极高，配置内容
 
 反正把`devDependencies`的依赖都升级一下总归没有错。
 
-### html-webpack-plugin
+**带来的变化**
+
+| 废弃项                    | 替代项(optimization)       |          主要功能          |
+| :------------------------ | :------------------------- | :------------------------: |
+| UglifyjsWebpackPlugin     | .minmize                   |          压缩优化          |
+| ModuleConcatenationPlugin | .opconcatenateModules      |       Scope hoisting       |
+| CommonsChunkPlugin        | .splitChunks/.runtimeChunk |       Code splitting       |
+| NoEmitOnErrorsPlugin      | noEmitOnErrors             | 编译出现错误，跳过输出阶段 |
+
+其实比如这次升级带来的功能`SideEffects`、`Module Type’s Introduced`、`WebAssembly Support`和其它性能方面的提升，对于一帮用户来说是不需要去关注的，一帮也用不到。主要是`optimization.splitChunks`代替原有的`CommonsChunkPlugin`(下篇文章会着重介绍)，和`Better Defaults-mode`更好的默认配置是大家稍微需要关注一下的。
+
+> 如果想进一步了解 `Tree Shaking`和`SideEffects`的可见文末拓展阅读。
+
+`webpack 4`引入了`零配置`的概念，被 [parcel](https://github.com/parcel-bundler/parcel) 刺激到了，但我觉得还是有不少可以优化的东西，真正像活动页这种项目我平时还是用`parcel`多一点，最近又新出了 [Fastpack](http://fastpack.io/) 可以关注一下。
+
+## 默认配置
+
+webpack 4 最大的改变是引入了`零配置`的概念，被 [parcel](https://github.com/parcel-bundler/parcel) 刺激到了。 不管效果怎样，这想法是很赞的（虽然像活动页这种项目我平时还是会用`parcel`）。
+
+> 最近又新出了 [Fastpack](http://fastpack.io/) 可以关注一下。
+
+言归正题，我们来看看 webpack 默认帮我们做了些什么?
+
+`development` 模式下，默认开启了`NamedChunksPlugin` 和`NamedModulesPlugin`方便调试，提供了更完整的错误信息，更快的重新编译的速度。
+
+```diff
+module.exports = {
++ mode: 'development'
+- devtool: 'eval',
+- plugins: [
+-   new webpack.NamedModulesPlugin(),
+-   new webpack.NamedChunksPlugin(),
+-   new webpack.DefinePlugin({ "process.env.NODE_ENV": JSON.stringify("development") }),
+- ]
+}
+```
+
+`production` 模式下，由于提供了`splitChunks`和`minimize`，所以你不用干什么就能得到压缩并且被优化过的代码、同时代码会被自动的 `Scope hoisting` 和 `Tree-shaking`
+
+```diff
+module.exports = {
++  mode: 'production',
+-  plugins: [
+-    new UglifyJsPlugin(/* ... */),
+-    new webpack.DefinePlugin({ "process.env.NODE_ENV": JSON.stringify("production") }),
+-    new webpack.optimize.ModuleConcatenationPlugin(),
+-    new webpack.NoEmitOnErrorsPlugin()
+-  ]
+}
+```
+
+webpack 一直以来最饱受诟病的就是其配置门槛极高，配置内容复杂而繁琐，容易让人从入门到放弃，而它的后起之秀如 rollup、parcel 等均在配置流程上做了极大的优化，做到开箱即用，webpack 4 中应该也从中借鉴了不少经验来提升自身的配置效率。
+
+## html-webpack-plugin
 
 用最新版本的的 `html-webpack-plugin`你可能还会遇到如下的错误
 
@@ -80,23 +109,44 @@ webpack 一直以来最饱受诟病的就是其配置门槛极高，配置内容
 
 [具体 issue](https://github.com/jantimon/html-webpack-plugin/issues/870)
 
-其它 html-webpack-plugin 和之前使用不需要该什么东西。
+其它 `html-webpack-plugin` 的配置和之前使用没有什么区别。
 
 ## mini-css-extract-plugin
 
-由于`webpack4`之后对 css 模块支持的逐步完善以及在处理 css 文件提取的方式上也做了些调整，之前我们首选使用的`extract-text-webpack-plugin`也完成了它的历史使命，将让位于`mini-css-extract-plugin`。
+### 优点
 
-使用方式也很简单，大家看着[文档](https://github.com/webpack-contrib/mini-css-extract-plugin#minimal-example)抄就可以了。
+`webpack4`对 css 模块支持的完善以及在处理 css 文件提取的方式上也做了些调整，之前我们一直使用的`extract-text-webpack-plugin`也完成了它的历史使命，将让位于`mini-css-extract-plugin`。
+
+使用方式也很简单，大家看着 [文档](https://github.com/webpack-contrib/mini-css-extract-plugin#minimal-example) 抄就可以了。
 
 它与`extract-text-webpack-plugin`最大的区别是：它在`code spliting`的时候会将原先内联写在每一个 js `chunk bundle`的 css，单独拆成了一个个 css 文件。
 
+原先将 css 内联在 js 文件里：
 ![](https://user-gold-cdn.xitu.io/2018/7/24/164cb85b234d224a?w=2534&h=98&f=jpeg&s=50714)
 
-这样做最大的好处是 js 和 css 改动相互不会影响对方。比如我改了 js 并不会导致 css 文件的缓存失效。而且现在它会配合`optimization.splitChunks`可以拆分 css 文件，比如我单独配置了`element-ui`作为单独一个`bundle`,它会自动也将它单独打包成一个 css 文件，不会像以前默认将第三方的 css 全部打包成一个几十甚至上百 KB 的`app.xxx.css`文件了。
+拆成独立 css 文件这样做最大的好处是 js 和 css 改动相互不会影响对方。比如我改了 js 并不会导致 css 文件的缓存失效。而且现在它自动会配合`optimization.splitChunks`的配置，可以自定义拆分 css 文件，比如我单独配置了`element-ui`作为单独一个`bundle`,它会自动也将它单独打包成一个 css 文件，不会像以前默认将第三方的 css 全部打包成一个几十甚至上百 KB 的`app.xxx.css`文件了。
 
 ![](https://user-gold-cdn.xitu.io/2018/7/24/164cbd49dc148656?w=516&h=254&f=png&s=73856)
 
-但有一个需求特别注意的地方，默认文档中它是这样配置的：
+### 压缩与优化
+
+打包之后查看源码，我们发现它并没有帮我们做代码压缩，这时候需要使用 [optimize-css-assets-webpack-plugin](https://github.com/NMFR/optimize-css-assets-webpack-plugin) 这个插件，它不仅能帮你压缩 css 还能优化你的代码。
+
+```js
+//配置
+optimization: {
+  minimizer: [new OptimizeCSSAssetsPlugin()];
+}
+```
+
+![](https://user-gold-cdn.xitu.io/2018/7/30/164e93dc299d7062?w=1778&h=764&f=jpeg&s=198182)
+
+如上图测试用例所示，由于`optimize-css-assets-webpack-plugin`这个插件默认使用了 [cssnano](https://github.com/cssnano/cssnano) 来作 css 优化，
+所以它不仅删掉了代码中无用的注释、还去除了冗余的 css、优化了 css 的书写顺序，优化了你的代码 `margin: 10px 20px 10px 20px;` =>`margin:10px 20px;`。同时大大减小了你 css 的文件大小。更多优化的细节见[文档](https://cssnano.co/guides/optimisations)。
+
+### contenthash
+
+但有一个需求特别注意的地方，在默认文档中它是这样配置的：
 
 ```js
 new MiniCssExtractPlugin({
@@ -107,9 +157,9 @@ new MiniCssExtractPlugin({
 });
 ```
 
-> 简单说明一下 `filename` 是指在你入口文件`entry`中引入生成出来的文件名，而`chunkname`是指那些未被在入口文件`entry`引入，但又通过按需加载（异步）模块的时候引入的文件。
+> 简单说明一下： `filename` 是指在你入口文件`entry`中引入生成出来的文件名，而`chunkname`是指那些未被在入口文件`entry`引入，但又通过按需加载（异步）模块的时候引入的文件。
 
-**copy**代码使用之后发现情况不对！每次改动一个`xx.js`文件，它对应的 css 虽然没做任何改动，也会发生变比。仔细对比发现原来是 `hash` 惹的祸。 `6.f3bfa3af.css` => `6.40bc56f6.css`
+在 **copy** 如上代码使用之后发现情况不对！每次改动一个`xx.js`文件，它对应的 css 虽然没做任何改动，也会发生变比。仔细对比发现原来是 `hash` 惹的祸。 `6.f3bfa3af.css` => `6.40bc56f6.css`
 
 ![](https://user-gold-cdn.xitu.io/2018/7/24/164cbe27801ebf69?w=1214&h=308&f=png&s=162463)
 
@@ -117,11 +167,11 @@ new MiniCssExtractPlugin({
 
 > For long term caching use filename: `[contenthash].css`. Optionally add [name].
 
-不是很理解，这么关键的一句话会放在`Maintainers`还后面的地方，默认写在配置里面提示大家不是更好？有人已经开了将文档默认 `chunkhash` => `contenthash`的 文档修改[issue](https://github.com/webpack/webpack.js.org/issues/2096)。
+非常的不理解，这么关键的一句话会放在 `Maintainers` 还后面的地方，默认写在配置里面提示大家不是更好？有热心群众已经开了一个`pr`，将文档默认配置为 `contenthash`。`chunkhash` => `contenthash`相关 [issue](https://github.com/webpack/webpack.js.org/issues/2096)。
 
-这个真的满过分的，稍不注意就会自己的 css 文件缓存无效，很多用户其实每次修改都不会在意自己最终打包出来的 `dist`文件夹中有哪些改变。可能这个问题就一直存在了。我觉得大家觉得 webpack 难用不是不无道理的。
+这个真的满过分的，稍不注意就会让自己的 css 文件缓存无效。很多用户其实每次修改都不会在意自己最终打包出来的 `dist`文件夹中有哪些改变。可能这个问题就一直存在了。浪费了多少资源。人艰不拆。大家觉得 webpack 难用不是不无道理的。
 
-### 这里在简单说明一下几种 hash 的区别：
+### 这里再简单说明一下几种 hash 的区别：
 
 - **hash**
 
@@ -135,11 +185,11 @@ new MiniCssExtractPlugin({
 
 - **contenthash**
 
-它的出现主要是为了解决`css`文件不受`js`文件的改变而改变。比如`foo.css`被`foo.js`引用了，所以它们共用相同的`chunkhash`值。但是这样子有个问题，如果`foo.js`更改了代码，`css`文件就算内容没有任何改变，由于是该模块发生了改变，其`css`文件的`hash`也会随之改变。
+它的出现主要是为了解决，让`css`文件不受`js`文件的影响。比如`foo.css`被`foo.js`引用了，所以它们共用相同的`chunkhash`值。但是这样子有个问题，如果`foo.js`更改了代码，`css`文件就算内容没有任何改变，由于是该模块发生了改变，其`css`文件的`hash`也会随之改变。
 
 这个时候我们就可以`contenthash`，保证即使`css`文件所处的模块里有任何内容的改变，只要 css 文件内容不变，那么它的`hash`就不会发生变化。
 
-`contenthash` 你可以简单理解为 `moduleId` + `content` 生成的 `hash`。
+`contenthash` 你可以简单理解为是 `moduleId` + `content` 生成的 `hash`。
 
 ## 热更新速度
 
@@ -229,9 +279,35 @@ module.exports = file => () => import("@/views/" + file + ".vue");
 
 ![](https://user-gold-cdn.xitu.io/2018/7/29/164e5366dd1d9dec?w=896&h=236&f=jpeg&s=22563)
 
-## 提取 runtime
+## Tree-Shaking
 
-参考文章：
+这其实并不是 webpack4 才提出来的概念，最早是[rollup ](https://github.com/rollup/rollup)提出来并实现的，后来在 webpack2 中就实现了，本次在 webpack4 只是增加了 `JSON Tree Shaking`和`sideEffects`让你能更好的`摇`。
 
-- [Long term caching using Webpack records](https://medium.com/@songawee/long-term-caching-using-webpack-records-9ed9737d96f2)
-- [Predictable long term caching with Webpack](https://medium.com/webpack/predictable-long-term-caching-with-webpack-d3eee1d3fa31)
+不过这里还是要提一下，默认 webpack 是支持`Tree-Shaking`的，但在你的项目中可能会因为`babel`的原因导致它失效。
+
+因为`Tree Shaking`这个功能是基于`ES6 modules` 的静态特性检测，来找出未使用的代码，所以如果你使用了 babel 插件的时候，如：[babel-preset-env](https://babeljs.io/docs/en/babel-preset-env/)，它默认会将模块打包成`commonjs`，这样就会让`Tree Shaking`失效了。
+
+其实在 webpack 2 之后它自己就支持模块化处理。所以只要让 babel 不`transform modules`就可以了。配置如下：
+需要在这
+
+```js
+// .babelrc
+{
+  "presets": [
+    ["env", {
+      modules: false,
+      ...
+    }]
+  ]
+}
+```
+
+顺便说一下都 8102 年了，请不要在使用`babel-preset-esxxxx`系列了，请用`babel-preset-env`，相关文章[再见，babel-preset-2015](https://zhuanlan.zhihu.com/p/29506685)。
+
+拓展阅读：
+
+- [Webpack 中的 sideEffects 到底该怎么用？](https://zhuanlan.zhihu.com/p/40052192)
+- [你的 Tree-Shaking 并没什么卵用
+  ](https://zhuanlan.zhihu.com/p/32831172)
+- [对 webpack 文档的吐槽](https://zhuanlan.zhihu.com/p/32148338)
+- [Tree-Shaking 性能优化实践 - 原理篇](https://zhuanlan.zhihu.com/p/32554436)

@@ -104,3 +104,26 @@ recordsPath: path.join(__dirname, "records.json");
 但现在一般公司都会将打包放在 `CI`里面，用`docker`打包，这时候这份`records.json`存在哪里就是一个问题了。它不经需要每次打包之前先读取你这份 json，打包完之后它还需要再更新这份 json。存在本地或者找一个服务器存，存在什么地其它方都感觉怪怪的。
 
 如果你使用 `Circle CI`可以使用它的`store_artifacts`，相关[教程](https://medium.com/@songawee/long-term-caching-using-webpack-records-9ed9737d96f2)。使用了之后还是放弃了这个方案，使用成本略高。前端打包应该更加的纯粹，不需要依赖太多其它的东西。
+
+## manifest
+
+[inline-manifest-webpack-plugin](https://github.com/szrenwei/inline-manifest-webpack-plugin)
+
+## Prefetching/Preloading modules
+
+## 展望
+
+[Whats next?](https://medium.com/webpack/webpack-4-released-today-6cdb994702d4) 官方在这篇文章中展望了一下 webpack5 和未来的计划，持续改进用户体验、提升构建速度和性能，降低使用门槛，完善`Persistent Caching`等等。
+
+同时 webpack 的团队已经承诺会通过投票的方式来决定一些功能。比如不久前发起的投票。
+
+![](https://user-gold-cdn.xitu.io/2018/7/30/164ea3f22ce46af8?w=1150&h=640&f=jpeg&s=109221)
+
+大家可以关注[Tobias Koppers](https://twitter.com/wSokra)的 twitter 进行投票。
+
+最后还是期待一下 webpack5 和它之后的发展吧，如果没有 webpack，就不会有今天的前端。
+
+参考文章：
+
+- [Long term caching using Webpack records](https://medium.com/@songawee/long-term-caching-using-webpack-records-9ed9737d96f2)
+- [Predictable long term caching with Webpack](https://medium.com/webpack/predictable-long-term-caching-with-webpack-d3eee1d3fa31)
